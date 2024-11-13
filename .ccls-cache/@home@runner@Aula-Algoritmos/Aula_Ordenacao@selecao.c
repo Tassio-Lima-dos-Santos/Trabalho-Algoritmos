@@ -35,10 +35,10 @@ void ordenacao_selecao(int *v, int n){
   }*/
 }
 
-int main(){
+/*int main(){
   int i, vetor[10] = {10,9,8,7,6,5,4,3,2,1};
   ordenacao_selecao(vetor, 10);
   for(i = 0; i < 10; i++){
     printf("%d ", vetor[i]);
   }
-}
+}*/
