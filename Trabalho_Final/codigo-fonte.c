@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <time.h>
+#include <math.h>
 
 
 //Struct que representa uma coordenada (X,Y)
@@ -114,12 +115,112 @@ void* ler_valores_de_sensores(void* arg) {
 
 //**** Implementar todas as funÃ§Ãµes e estruturas de dados aqui ****/
 
+typedef struct lstItem{
+   Visita *dado;
+   struct lstItem *next;
+} lstVisita;
 
+
+
+lstVisita *cria_lista(){
+   return NULL;
+}
+
+/* 
+   Procura, em lstProduto, um elemento cujos dados sejam igual ao "dado" passado como parâmetro .
+   Retorna um ponteiro para o elemento da lista que contém o referido dado.
+*/
+
+/* 
+   Insere um novo elemento no inicio na lista.
+   Retorna um ponteiro para a cabeça da lista.
+*/
+/*lstProduto* insere_no_inicio(lstProduto *lista, produto dado){ 
+   lstProduto* novo = malloc(sizeof(lstProduto));
+   (*novo).dado = dado;
+   (*novo).next = lista;
+   lista = novo;   
+   return lista;
+}*/
+
+
+
+
+/* 
+   Insere um novo elemento no final na lista.
+   Retorna um ponteiro para a cabeça da lista.
+
+*/
+/*lstProduto* insere_no_fim(lstProduto *lista, produto dado){
+   if(lista==NULL){
+      lista = insere_no_inicio(lista, dado);
+      return lista;
+   }
+   lstProduto *item = lista;
+   while(item->next!=NULL){
+      item = (*item).next;
+   }
+   item->next = insere_no_inicio((*item).next, dado);
+
+   return lista;
+}*/
+
+
+
+
+/* 
+   Inserção do produto passado no parâmetro "dado" após a posicao que armazena o produto passado no parâmero "posicao".
+   Retorna um ponteiro para a cabeça da lista.
+*/
+/*lstProduto *insere_apos(lstProduto *lista, produto dado, produto posicao){
+   if(lista==NULL){
+      lista = insere_no_inicio(lista, dado);
+      return lista;
+   }
+   lstProduto *item = busca(lista, posicao);
+   item->next = insere_no_inicio(item->next, dado);
+   return lista;
+}
+
+void excluir(lstProduto *lista, produto dado){
+   if(lista==NULL){
+      printf("Não há itens");
+   }else{
+      lstProduto *item = lista, *itemAnt = lista;
+      while(!( item->dado.preco == dado.preco && !strcmp(item->dado.nome, dado.nome)) ){
+         itemAnt = item;
+         item = (*item).next;
+         if(item==NULL){
+            break;
+         }
+      }
+      if(itemAnt==lista){
+         lista = item->next;
+      }else{
+         itemAnt->next = item->next;
+      }
+      free(item);
+   }
+}
+
+
+
+
+*/
+/* Execução das rotinas necessárias para ler os dados de um novo produto */
+/*produto *novo_produto(){
+   produto *novo = malloc(sizeof(produto));
+   printf("Nome do produto: ");
+   scanf("%s",(*novo).nome);
+   printf("Preço: ");
+   scanf("%f",&((*novo).preco));
+   return novo;
+}*/
 
 //**** 	 ****/
 
 
-/*int main() {
+int main() {
     pthread_t thread_gerar, thread_ler;
     Visita visita; 
     int opcao=0;
@@ -145,7 +246,7 @@ void* ler_valores_de_sensores(void* arg) {
         printf("4. Imprimir a distÃ¢ncia mÃ©dia para o obstÃ¡culo mais prÃ³ximo nas Ãºltimas 'x' leituras\n");
         printf("5. Imprimir o horÃ¡rio da primeira visita a um ponto.\n");
         printf("6. Imprimir o a distÃ¢ncia entre o Ãºltimo ponto ponto visitado e o ponto mais distante das coordenadas (0, 0)\n");
-        printf("6. Imprimir o a distÃ¢ncia entre o Ãºltimo ponto ponto visitado e o ponto mais prÃ³ximo das coordenadas (0, 0)\n");
+        printf("7. Imprimir o a distÃ¢ncia entre o Ãºltimo ponto ponto visitado e o ponto mais prÃ³ximo das coordenadas (0, 0)\n");
         printf("9. Encerrar o programa\n");
 
 
@@ -158,11 +259,11 @@ void* ler_valores_de_sensores(void* arg) {
            case 2: 
               visita = ultima_visita();
               printf("(%d,%d) - %02d:%02d:%02d\n",visita.coordenada.x, visita.coordenada.y, visita.hora->tm_hour, visita.hora->tm_min, visita.hora->tm_sec);
-              break;*/
+              break;
            /**** Implementar as opÃ§Ãµes 3 a 7 aqui ****/   
 
            /**** Fim da implementaÃ§Ã£o das opÃ§Ãµes 3 a 7  ****/
-           /*case 9: 
+           case 9: 
               pthread_mutex_lock(&mutex);
               thread_status = 0;
               pthread_cond_broadcast(&cond); // Sinalizar todas as threads
@@ -183,4 +284,4 @@ void* ler_valores_de_sensores(void* arg) {
     pthread_join(thread_ler, NULL);
 
     return 0;
-}*/
+}
