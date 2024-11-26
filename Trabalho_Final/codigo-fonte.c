@@ -115,107 +115,112 @@ void* ler_valores_de_sensores(void* arg) {
 
 //**** Implementar todas as funÃ§Ãµes e estruturas de dados aqui ****/
 
-typedef struct lstItem{
+#include <stdio.h>
+#include <stdlib.h>
+
+/************ Lista das distâncias de obstáculo **************/
+// Estrutura de um nó da lista encadeada
+typedef struct item {
+    float distancia;          // Valor da leitura de distância
+    struct item *proximo, *anterior;      // Ponteiros para o nó posterior e anterior
+} Item;
+
+// Estrutura da lista encadeada
+typedef struct {
+    Item *inicio, *fim;                  // Ponteiros para o primeiro e último nó
+    int tamanho;              // Número de elementos na lista
+} ListaEncadeada;
+
+// Função para criar uma lista encadeada
+ListaEncadeada* criar_lista() {
+    ListaEncadeada* lista = malloc(sizeof(ListaEncadeada));
+    lista->inicio = NULL;
+    lista->fim = NULL;
+    lista->tamanho = 0;
+    return lista;
+}
+
+// Função para adicionar uma leitura à lista
+void adicionar_distancia(ListaEncadeada* lista, float distancia) {
+    Item* novo = malloc(sizeof(Item));
+    novo->distancia = distancia;
+    novo->proximo = NULL;
+    novo->anterior = lista->fim;
+
+    // Adiciona o novo nó no final da lista
+    if (lista->fim == NULL) { // Lista vazia
+        lista->inicio = novo;
+    } else {
+        lista->fim->proximo = novo;
+    }
+    lista->fim = novo;
+    lista->tamanho++;
+}
+
+// Função para calcular a média das x leituras mais antigas
+float calcular_media_antigas(ListaEncadeada* lista, int x) {
+    if (x > lista->tamanho) {
+        printf("Erro: não há leituras suficientes para calcular a média.\n");
+        return -1.0;
+    }
+
+    Item *atual = lista->inicio;
+    float soma = 0.0;
+
+    // Soma as distâncias das x leituras mais antigas
+    for(int i = 0; atual != NULL && i < x; i++) {
+        soma += atual->distancia;
+        atual = atual->proximo;
+    }
+
+    return soma / x;
+}
+
+float calcular_media_recentes(ListaEncadeada* lista, int x) {
+    if (x > lista->tamanho) {
+        printf("Erro: não há leituras suficientes para calcular a média.\n");
+        return -1.0;
+    }
+
+    Item *atual = lista->fim;
+    float soma = 0.0;
+
+    // Soma as distâncias das x leituras mais antigas
+    for(int i = 0; atual != NULL && i < x; i++) {
+        soma += atual->distancia;
+        atual = atual->anterior;
+    }
+
+    return soma / x;
+}
+
+/******************************** Árvore das Visitas **********************/
+struct no_tree{
    Visita *dado;
-   struct lstItem *next;
-} lstVisita;
+   struct no_tree *left, *right; //filho da esquerda e da direita
+} typedef No_tree;
 
+typedef struct{
+   No_tree *raiz, *minimo, *maximo, *ultimo; // Nós importantes da árvore: A raiz da árvore, a visita mais
+   // próxima de (0,0), a visita mais distante de (0,0) e a última visita feita
+} Tree;
 
+Tree *iniciar_arvore(){
+   Tree *tree = malloc(sizeof(Tree));
+   tree->raiz = NULL;
+   tree->minimo = NULL;
+   tree->maximo = NULL;
+   tree->ultimo = NULL;
 
-lstVisita *cria_lista(){
-   return NULL;
+   return tree;
 }
 
-/* 
-   Procura, em lstProduto, um elemento cujos dados sejam igual ao "dado" passado como parâmetro .
-   Retorna um ponteiro para o elemento da lista que contém o referido dado.
-*/
+int comparar_nos(No_tree *no1, No_tree *no2){
+   float distancia[2] = {no1->dado->coordenada.x};
+   if(1){
 
-/* 
-   Insere um novo elemento no inicio na lista.
-   Retorna um ponteiro para a cabeça da lista.
-*/
-/*lstProduto* insere_no_inicio(lstProduto *lista, produto dado){ 
-   lstProduto* novo = malloc(sizeof(lstProduto));
-   (*novo).dado = dado;
-   (*novo).next = lista;
-   lista = novo;   
-   return lista;
-}*/
-
-
-
-
-/* 
-   Insere um novo elemento no final na lista.
-   Retorna um ponteiro para a cabeça da lista.
-
-*/
-/*lstProduto* insere_no_fim(lstProduto *lista, produto dado){
-   if(lista==NULL){
-      lista = insere_no_inicio(lista, dado);
-      return lista;
-   }
-   lstProduto *item = lista;
-   while(item->next!=NULL){
-      item = (*item).next;
-   }
-   item->next = insere_no_inicio((*item).next, dado);
-
-   return lista;
-}*/
-
-
-
-
-/* 
-   Inserção do produto passado no parâmetro "dado" após a posicao que armazena o produto passado no parâmero "posicao".
-   Retorna um ponteiro para a cabeça da lista.
-*/
-/*lstProduto *insere_apos(lstProduto *lista, produto dado, produto posicao){
-   if(lista==NULL){
-      lista = insere_no_inicio(lista, dado);
-      return lista;
-   }
-   lstProduto *item = busca(lista, posicao);
-   item->next = insere_no_inicio(item->next, dado);
-   return lista;
-}
-
-void excluir(lstProduto *lista, produto dado){
-   if(lista==NULL){
-      printf("Não há itens");
-   }else{
-      lstProduto *item = lista, *itemAnt = lista;
-      while(!( item->dado.preco == dado.preco && !strcmp(item->dado.nome, dado.nome)) ){
-         itemAnt = item;
-         item = (*item).next;
-         if(item==NULL){
-            break;
-         }
-      }
-      if(itemAnt==lista){
-         lista = item->next;
-      }else{
-         itemAnt->next = item->next;
-      }
-      free(item);
    }
 }
-
-
-
-
-*/
-/* Execução das rotinas necessárias para ler os dados de um novo produto */
-/*produto *novo_produto(){
-   produto *novo = malloc(sizeof(produto));
-   printf("Nome do produto: ");
-   scanf("%s",(*novo).nome);
-   printf("Preço: ");
-   scanf("%f",&((*novo).preco));
-   return novo;
-}*/
 
 //**** 	 ****/
 
