@@ -115,10 +115,8 @@ void* ler_valores_de_sensores(void* arg) {
 
 //**** Implementar todas as funÃ§Ãµes e estruturas de dados aqui ****/
 
-#include <stdio.h>
-#include <stdlib.h>
+/************ Início - Lista das distâncias de obstáculo **************/
 
-/************ Lista das distâncias de obstáculo **************/
 // Estrutura de um nó da lista encadeada
 typedef struct item {
     float distancia;          // Valor da leitura de distância
@@ -194,7 +192,14 @@ float calcular_media_recentes(ListaEncadeada* lista, int x) {
     return soma / x;
 }
 
-/******************************** Árvore das Visitas **********************/
+/************ Fim - Lista das distâncias de obstáculo **************/
+
+/************ Início - Árvore das Visitas do Veículo **************/
+
+float dist_coords(int x1, int y1, int x2, int y2){
+    return sqrt(pow(x1 - x2, 2) + pow(y1 - y2, 2));
+}
+
 struct no_tree{
    Visita *dado;
    struct no_tree *left, *right; //filho da esquerda e da direita
@@ -205,7 +210,8 @@ typedef struct{
    // próxima de (0,0), a visita mais distante de (0,0) e a última visita feita
 } Tree;
 
-Tree *iniciar_arvore(){
+Tree *iniciar_arvore(){ // Inicia uma variável Tree que vai gerenciar a estrutura de dados responsável 
+                        // pelas coordenadas
    Tree *tree = malloc(sizeof(Tree));
    tree->raiz = NULL;
    tree->minimo = NULL;
@@ -216,11 +222,50 @@ Tree *iniciar_arvore(){
 }
 
 int comparar_nos(No_tree *no1, No_tree *no2){
-   float distancia[2] = {no1->dado->coordenada.x};
-   if(1){
 
+    /* A função cria uma ordem para as coordenadas, na qual coordenadas mais distantes da origem
+    tem prioridade sobre as menos distantes, e entre as equidistantes, as mais distantes da origem
+    no eixo x tem prioridade sobre as menos distantes. O valor que a função retorna informa qual
+    dos dois nós comparados tem prioridade nessa ordem, caso a função retorne 1, o primeiro nó
+    tem prioridade, caso a função retorne 2, o segundo nó tem prioridade, e caso as duas coordenadas
+    sejam iguais, a função retorna 0.*/
+
+   float dist[2] = {dist_coords(no1->dado->coordenada.x, no1->dado->coordenada.y, 0, 0),
+                    dist_coords(no2->dado->coordenada.x, no2->dado->coordenada.y, 0, 0)};
+    // As distâncias das coordenadas dos nós até a origem
+   if(dist[0] > dist[1]){
+        return 1;
+   }else if(dist[0] < dist[1]){
+        return 2;
+   }else if(no1->dado->coordenada.x > no2->dado->coordenada.x){
+        return 1;
+   }else if(no1->dado->coordenada.x < no2->dado->coordenada.x){
+        return 2;
+   }else{
+        return 0;
    }
 }
+
+void adicionar_visita(Tree *tree, Visita dado_novo){
+    //tree->ultimo = insert(tree->raiz, dado_novo);
+
+}
+
+/*No_tree *insert(No_tree *t, Visita dado){
+   if(t==NULL){
+      t = malloc(sizeof(No_tree));
+      (*t).dado = dado;
+      (*t).left = NULL;
+      (*t).right = NULL; 
+   }else{
+      if(dado<(*t).dado)
+         (*t).left = insert((*t).left,dado);     
+      else
+         (*t).right = insert((*t).right,dado); 
+   }
+}*/
+
+/************ Fim - Árvore das Visitas do Veículo **************/
 
 //**** 	 ****/
 
