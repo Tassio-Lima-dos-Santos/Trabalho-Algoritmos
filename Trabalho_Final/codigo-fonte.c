@@ -201,7 +201,7 @@ float dist_coords(int x1, int y1, int x2, int y2){
 }
 
 struct no_tree{
-   Visita *dado;
+   Visita dado;
    struct no_tree *left, *right; //filho da esquerda e da direita
 } typedef No_tree;
 
@@ -221,7 +221,7 @@ Tree *iniciar_arvore(){ // Inicia uma variável Tree que vai gerenciar a estrutu
    return tree;
 }
 
-int comparar_nos(No_tree *no1, No_tree *no2){
+int comparar_visitas(Visita visita1, Visita visita2){
 
     /* A função cria uma ordem para as coordenadas, na qual coordenadas mais distantes da origem
     tem prioridade sobre as menos distantes, e entre as equidistantes, as mais distantes da origem
@@ -230,16 +230,16 @@ int comparar_nos(No_tree *no1, No_tree *no2){
     tem prioridade, caso a função retorne 2, o segundo nó tem prioridade, e caso as duas coordenadas
     sejam iguais, a função retorna 0.*/
 
-   float dist[2] = {dist_coords(no1->dado->coordenada.x, no1->dado->coordenada.y, 0, 0),
-                    dist_coords(no2->dado->coordenada.x, no2->dado->coordenada.y, 0, 0)};
+   float dist[2] = {dist_coords(visita1.coordenada.x, visita1.coordenada.y, 0, 0),
+                    dist_coords(visita2.coordenada.x, visita2.coordenada.y, 0, 0)};
     // As distâncias das coordenadas dos nós até a origem
    if(dist[0] > dist[1]){
         return 1;
    }else if(dist[0] < dist[1]){
         return 2;
-   }else if(no1->dado->coordenada.x > no2->dado->coordenada.x){
+   }else if(visita1.coordenada.x > visita2.coordenada.x){
         return 1;
-   }else if(no1->dado->coordenada.x < no2->dado->coordenada.x){
+   }else if(visita1.coordenada.x < visita2.coordenada.x){
         return 2;
    }else{
         return 0;
@@ -247,23 +247,53 @@ int comparar_nos(No_tree *no1, No_tree *no2){
 }
 
 void adicionar_visita(Tree *tree, Visita dado_novo){
-    //tree->ultimo = insert(tree->raiz, dado_novo);
-
+    tree->ultimo = insert(tree->raiz, dado_novo);
+    if(tree->raiz == NULL){
+        tree->raiz = tree->ultimo;
+    }
+    if(dist_coords(tree->ultimo->dado.coordenada.x, tree->ultimo->dado.coordenada.y, 0, 0) >= dist_coords(tree->maximo->dado.coordenada.x, tree->maximo->dado.coordenada.y, 0, 0)){
+        tree->maximo = tree->ultimo;
+    }if(dist_coords(tree->ultimo->dado.coordenada.x, tree->ultimo->dado.coordenada.y, 0, 0) <= dist_coords(tree->minimo->dado.coordenada.x, tree->minimo->dado.coordenada.y, 0, 0)){
+        tree->minimo = tree->ultimo;
+    }
 }
 
-/*No_tree *insert(No_tree *t, Visita dado){
-   if(t==NULL){
+No_tree *insert(No_tree *t, Visita dado){
+    No_tree *noAtual = t;
+    while(noAtual != NULL){
+      if(comparar_visitas(noAtual->dado, dado) == 2)
+         noAtual = noAtual->left;     
+      else
+         noAtual = noAtual->right;
+    }
+    noAtual = malloc(sizeof(No_tree));
+    noAtual->dado = dado;
+    noAtual->left = NULL;
+    noAtual->right = NULL; 
+    return noAtual;
+   /*if(t==NULL){
       t = malloc(sizeof(No_tree));
-      (*t).dado = dado;
-      (*t).left = NULL;
-      (*t).right = NULL; 
+      t->dado = dado;
+      t->left = NULL;
+      t->right = NULL; 
    }else{
-      if(dado<(*t).dado)
+      if(comparar_visitas(t->dado, dado) == 1)
          (*t).left = insert((*t).left,dado);     
       else
          (*t).right = insert((*t).right,dado); 
-   }
-}*/
+   }*/
+}
+
+No_tree *buscar_visita(No_tree *t, Visita value){
+   if(t==NULL || comparar_visitas(t->dado, value) == 0){
+      return t;
+   }else{
+      if(comparar_visitas(t->dado, value) == 1)
+         return search_value(t->left, value);
+      else
+         return search_value(t->right, value);
+   }    
+}
 
 /************ Fim - Árvore das Visitas do Veículo **************/
 
