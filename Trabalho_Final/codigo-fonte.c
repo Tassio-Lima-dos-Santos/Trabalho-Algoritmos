@@ -103,7 +103,7 @@ void* ler_valores_de_sensores(void* arg) {
         //printf("(%d,%d) - %02d:%02d:%02d\n",visita.coordenada.x, visita.coordenada.y, visita.hora->tm_hour, visita.hora->tm_min, visita.hora->tm_sec);
 
         /**** Implementar a leitura dos sensores aqui ****/
-
+        
 
         /**** Finalizar a leitura dos sensores aqui  ****/
 
@@ -115,7 +115,7 @@ void* ler_valores_de_sensores(void* arg) {
 
 //**** Implementar todas as funÃ§Ãµes e estruturas de dados aqui ****/
 
-/************ Início - Lista das distâncias de obstáculo **************/
+/************ Início - Lista das Distâncias de Obstáculo **************/
 
 // Estrutura de um nó da lista encadeada
 typedef struct item {
@@ -140,16 +140,16 @@ ListaEncadeada* criar_lista() {
 
 // Função para adicionar uma leitura à lista
 void adicionar_distancia(ListaEncadeada* lista, float distancia) {
-    Item* novo = malloc(sizeof(Item));
-    novo->distancia = distancia;
-    novo->proximo = NULL;
-    novo->anterior = lista->fim;
+    Item* novo = malloc(sizeof(Item)); // Aloca um espaço na memória para um novo item da lista
+    novo->distancia = distancia; // Grava a distância no novo item
+    novo->proximo = NULL; // Seta o ponteiro do novo item para o próximo como NULL
+    novo->anterior = lista->fim; // Seta o ponteiro do novo item para o anterior como o item apontado pelo ponteiro fim
 
     // Adiciona o novo nó no final da lista
     if (lista->fim == NULL) { // Lista vazia
-        lista->inicio = novo;
-    } else {
-        lista->fim->proximo = novo;
+        lista->inicio = novo; // Ponteiro início aponta para o novo item
+    } else { // Caso a lista não for vazia
+        lista->fim->proximo = novo; // Ponteiro próximo do item anterior aponta o novo item
     }
     lista->fim = novo;
     lista->tamanho++;
@@ -162,13 +162,13 @@ float calcular_media_antigas(ListaEncadeada* lista, int x) {
         return -1.0;
     }
 
-    Item *atual = lista->inicio;
+    Item *atual = lista->inicio; // Inicia do item apontado pelo ponteiro início
     float soma = 0.0;
 
     // Soma as distâncias das x leituras mais antigas
     for(int i = 0; atual != NULL && i < x; i++) {
         soma += atual->distancia;
-        atual = atual->proximo;
+        atual = atual->proximo; // Vai percorrendo a lista passando a cada passo para o proximo item
     }
 
     return soma / x;
@@ -180,29 +180,26 @@ float calcular_media_recentes(ListaEncadeada* lista, int x) {
         return -1.0;
     }
 
-    Item *atual = lista->fim;
+    Item *atual = lista->fim; // Inicia do último item
     float soma = 0.0;
 
     // Soma as distâncias das x leituras mais antigas
     for(int i = 0; atual != NULL && i < x; i++) {
         soma += atual->distancia;
-        atual = atual->anterior;
+        atual = atual->anterior; // Percorre a lista passando para o item anterior a cada passo
     }
 
     return soma / x;
 }
 
-/************ Fim - Lista das distâncias de obstáculo **************/
+/************ Fim - Lista das Distâncias de Obstáculo **************/
 
 /************ Início - Árvore das Visitas do Veículo **************/
 
-float dist_coords(int x1, int y1, int x2, int y2){
-    return sqrt(pow(x1 - x2, 2) + pow(y1 - y2, 2));
-}
-
-struct no_tree{
+struct no_tree{ // Struct dos nós da árvore
    Visita dado;
-   struct no_tree *left, *right; //filho da esquerda e da direita
+   struct no_tree *left, *right; // filho da esquerda e da direita
+   int altura; // Altura do nó para a folha mais baixa
 } typedef No_tree;
 
 typedef struct{
@@ -210,15 +207,9 @@ typedef struct{
    // próxima de (0,0), a visita mais distante de (0,0) e a última visita feita
 } Tree;
 
-Tree *iniciar_arvore(){ // Inicia uma variável Tree que vai gerenciar a estrutura de dados responsável 
-                        // pelas coordenadas
-   Tree *tree = malloc(sizeof(Tree));
-   tree->raiz = NULL;
-   tree->minimo = NULL;
-   tree->maximo = NULL;
-   tree->ultimo = NULL;
-
-   return tree;
+/************ Início - Funções necessárias para o funcionamento da árvore **************/
+float dist_coords(int x1, int y1, int x2, int y2){ // Distância entre duas coordenadas
+    return sqrt(pow(x1 - x2, 2) + pow(y1 - y2, 2));
 }
 
 int comparar_visitas(Visita visita1, Visita visita2){
@@ -246,52 +237,166 @@ int comparar_visitas(Visita visita1, Visita visita2){
    }
 }
 
+No_tree *criarNo(Visita dado_novo){
+    // Inicia um nó que guarda o dado passado como argumento da função
+    No_tree *novo_no = malloc(sizeof(No_tree));
+    novo_no->dado = dado_novo;
+    novo_no->left = NULL;
+    novo_no->right = NULL;
+    novo_no->altura = 1;
+    return novo_no;
+}
+
+int getAltura(No_tree *n)
+{
+    // Serve para sempre obter a altura de um nó sem gerar erro, pois trata o caso do ponteiro apontar para NULL
+    if(n == NULL){
+        return 0;
+    }
+    return n->altura;
+}
+
+int max(int a, int b){
+    return (a > b) ? a : b;
+}
+
+int updateAltura(No_tree *n){ // Atualiza a altura de um nó acrescentando 1 à altura do filho mais "alto"
+    return max(getAltura(n->left), getAltura(n->right)) + 1;
+}
+
+int getBalanceFactor(No_tree *n){ 
+    // Retorna o valor de balanço de um dado nó, que basicamente fala qual lado do nó está mais "pesado",
+    // >0 = lado esquerdo mais pesado, <0 = lado direito mais pesado, =0 = nó equilibrado
+    if (n == NULL)
+        return 0;
+    return getAltura(n->left) - getAltura(n->right);
+}
+
+No_tree *rightRotate(No_tree *y){ 
+    // Faz o nó da esquerda de um dado nó se tornar seu pai e o dado nó ir para direita do outro nó
+
+    No_tree *x = y->left;
+    No_tree *T2 = x->right;
+
+    // Performa a rotação
+    x->right = y;
+    y->left = T2;
+
+    // Atualiza as alturas dos nós que foram trocados
+    y->altura = updateAltura(y);
+    x->altura = updateAltura(x);
+
+    return x;
+}
+
+No_tree *leftRotate(No_tree *x){
+    // Faz o nó da direita de um dado nó se tornar seu pai e o dado nó ir para esquerda do outro nó
+
+    No_tree *y = x->right;
+    No_tree *T2 = y->left;
+
+    // Performa a rotação
+    y->left = x;
+    x->right = T2;
+
+    // Atualiza as alturas dos nós que foram trocados
+    x->altura = updateAltura(x);
+    y->altura = updateAltura(y);
+
+    return y;
+}
+
+/************ Fim - Funções necessárias para o funcionamento da árvore **************/
+
+Tree *iniciar_arvore(){
+   // Inicia uma variável Tree que vai gerenciar a estrutura de dados responsável 
+   // pelas coordenadas
+   Tree *tree = malloc(sizeof(Tree));
+   tree->raiz = NULL;
+   tree->minimo = NULL;
+   tree->maximo = NULL;
+   tree->ultimo = NULL;
+
+   return tree;
+}
+
 void adicionar_visita(Tree *tree, Visita dado_novo){
-    tree->ultimo = insert(tree->raiz, dado_novo);
-    if(tree->raiz == NULL){
+    No_tree *novo_no = criarNo(dado_novo); // Cria um novo nó
+    insert(tree->raiz, novo_no); // Insere o novo nó na árvore
+    tree->ultimo = novo_no; // Ponteiro último da árvore aponta para o novo nó
+    if(tree->raiz == NULL){ // Caso a árvore esteja vazia, o novo nó se torna a raiz da árvore
         tree->raiz = tree->ultimo;
     }
-    if(dist_coords(tree->ultimo->dado.coordenada.x, tree->ultimo->dado.coordenada.y, 0, 0) >= dist_coords(tree->maximo->dado.coordenada.x, tree->maximo->dado.coordenada.y, 0, 0)){
+    if(comparar_visitas(tree->ultimo->dado, tree->maximo->dado) != 2){
+        // Se ao comparar as coordenadas da última visita e da visita mais distante do ponto (0,0)
+        // a visita mais distante não tiver prioridade, o último nó se torna o nó máximo
         tree->maximo = tree->ultimo;
-    }if(dist_coords(tree->ultimo->dado.coordenada.x, tree->ultimo->dado.coordenada.y, 0, 0) <= dist_coords(tree->minimo->dado.coordenada.x, tree->minimo->dado.coordenada.y, 0, 0)){
+    }if(comparar_visitas(tree->minimo->dado, tree->ultimo->dado) != 2){
+        // Se ao comparar as coordenadas da última visita e da visita mais próxima do ponto (0,0)
+        // a última visita não tiver prioridade, o último nó se torna o nó mínimo
         tree->minimo = tree->ultimo;
     }
 }
 
-No_tree *insert(No_tree *t, Visita dado){
-    No_tree *noAtual = t;
-    while(noAtual != NULL){
-      if(comparar_visitas(noAtual->dado, dado) == 2)
-         noAtual = noAtual->left;     
-      else
-         noAtual = noAtual->right;
+No_tree *insert(No_tree *no_atual, No_tree *novo_no){
+    // 1. Inserção de árvore binária padrão
+    if (no_atual == NULL){
+        return novo_no;
     }
-    noAtual = malloc(sizeof(No_tree));
-    noAtual->dado = dado;
-    noAtual->left = NULL;
-    noAtual->right = NULL; 
-    return noAtual;
-   /*if(t==NULL){
-      t = malloc(sizeof(No_tree));
-      t->dado = dado;
-      t->left = NULL;
-      t->right = NULL; 
-   }else{
-      if(comparar_visitas(t->dado, dado) == 1)
-         (*t).left = insert((*t).left,dado);     
-      else
-         (*t).right = insert((*t).right,dado); 
-   }*/
+
+    if(comparar_visitas(no_atual->dado, novo_no->dado) == 1){
+        no_atual->left = insert(no_atual->left, novo_no);
+    }else{
+        no_atual->right = insert(no_atual->right, novo_no);
+    }
+
+    // 2. Atualiza recursivamente as alturas dos nós
+    no_atual->altura = updateAltura(no_atual);
+
+    // 3. Pega o valor de balanço do nó atual e checa se o nó está desbalanceado
+    int balance = getBalanceFactor(no_atual);
+
+    // 4. Se o nó está desbalanceado, há 4 casos desse desbalanço
+
+    // Caso Left Left
+    if (balance > 1 && (comparar_visitas(no_atual->left->dado, novo_no->dado) == 1))
+        return rightRotate(no_atual);
+
+    // Caso Right Right 
+    if (balance < -1 && (comparar_visitas(no_atual->right->dado, novo_no->dado) == 2))
+        return leftRotate(no_atual);
+
+    // Caso Left Right
+    if (balance > 1 && (comparar_visitas(no_atual->left->dado, novo_no->dado) == 2)) {
+        no_atual->left = leftRotate(no_atual->left);
+        return rightRotate(no_atual);
+    }
+
+    // Caso Right Left
+    if (balance < -1 && (comparar_visitas(no_atual->right->dado, novo_no->dado) == 1)) {
+        no_atual->right = rightRotate(no_atual->right);
+        return leftRotate(no_atual);
+    }
+
+    // Retorna o endereço do nó atual
+    return no_atual;
+
+    // Fonte: https://www.geeksforgeeks.org/c-program-to-implement-avl-tree/
 }
 
 No_tree *buscar_visita(No_tree *t, Visita value){
    if(t==NULL || comparar_visitas(t->dado, value) == 0){
+      // Caso o nó atual for NULL ou seu dado for igual ao procurado, então o nó atual é retornado
       return t;
    }else{
-      if(comparar_visitas(t->dado, value) == 1)
+      if(comparar_visitas(t->dado, value) == 1){
+         // Caso o nó atual tenha preferência na comparação com o dado procurado, procurar no nó a esquerda
          return search_value(t->left, value);
-      else
+      }
+      else{
+         // Caso o dado procurado tenha preferência na comparação com o nó atual, procurar no nó a direita
          return search_value(t->right, value);
+      }
    }    
 }
 
