@@ -1,4 +1,4 @@
-/* Para executar em terminal, digitar gcc trabalho_cac3202_20242.c -o trabalho_cac3202_20242 -pthread */
+/* Para executar em terminal, digitar gcc codigo-fonte.c -o trabalho_cac3202_20242 -pthread */
 
 
 #include <stdio.h>
@@ -103,7 +103,14 @@ void* ler_valores_de_sensores(void* arg) {
         //printf("(%d,%d) - %02d:%02d:%02d\n",visita.coordenada.x, visita.coordenada.y, visita.hora->tm_hour, visita.hora->tm_min, visita.hora->tm_sec);
 
         /**** Implementar a leitura dos sensores aqui ****/
-        
+
+        /*if(lista_de_distancias == NULL){
+            lista_de_distancias = iniciar_lista_distancia();
+        }if(arvore_de_visitas == NULL){
+            arvore_de_visitas = iniciar_arvore();
+        }*/
+        //adicionar_distancia(lista_de_distancias, distancia_obstaculo());
+        //adicionar_visita_arvore(arvore_de_visitas, ultima_visita());
 
         /**** Finalizar a leitura dos sensores aqui  ****/
 
@@ -117,21 +124,21 @@ void* ler_valores_de_sensores(void* arg) {
 
 /************ Início - Lista das Distâncias de Obstáculo **************/
 
-// Estrutura de um nó da lista encadeada
-typedef struct item {
+// Estrutura de um nó da lista encadeada de distância
+typedef struct item_distancia {
     float distancia;          // Valor da leitura de distância
-    struct item *proximo, *anterior;      // Ponteiros para o nó posterior e anterior
-} Item;
+    struct item_distancia *proximo, *anterior;      // Ponteiros para o nó posterior e anterior
+} Item_distancia;
 
-// Estrutura da lista encadeada
+// Estrutura da lista encadeada de distância
 typedef struct {
-    Item *inicio, *fim;                  // Ponteiros para o primeiro e último nó
+    Item_distancia *inicio, *fim;                  // Ponteiros para o primeiro e último nó
     int tamanho;              // Número de elementos na lista
-} ListaEncadeada;
+} ListaEncadeada_distancia;
 
-// Função para criar uma lista encadeada
-ListaEncadeada* criar_lista() {
-    ListaEncadeada* lista = malloc(sizeof(ListaEncadeada));
+// Função para criar uma lista encadeada de distância
+ListaEncadeada_distancia* iniciar_lista_distancia() {
+    ListaEncadeada_distancia* lista = malloc(sizeof(ListaEncadeada_distancia));
     lista->inicio = NULL;
     lista->fim = NULL;
     lista->tamanho = 0;
@@ -139,8 +146,8 @@ ListaEncadeada* criar_lista() {
 }
 
 // Função para adicionar uma leitura à lista
-void adicionar_distancia(ListaEncadeada* lista, float distancia) {
-    Item* novo = malloc(sizeof(Item)); // Aloca um espaço na memória para um novo item da lista
+void adicionar_distancia(ListaEncadeada_distancia* lista, float distancia) {
+    Item_distancia* novo = malloc(sizeof(Item_distancia)); // Aloca um espaço na memória para um novo item da lista
     novo->distancia = distancia; // Grava a distância no novo item
     novo->proximo = NULL; // Seta o ponteiro do novo item para o próximo como NULL
     novo->anterior = lista->fim; // Seta o ponteiro do novo item para o anterior como o item apontado pelo ponteiro fim
@@ -156,13 +163,13 @@ void adicionar_distancia(ListaEncadeada* lista, float distancia) {
 }
 
 // Função para calcular a média das x leituras mais antigas
-float calcular_media_antigas(ListaEncadeada* lista, int x) {
+float calcular_media_antigas(ListaEncadeada_distancia* lista, int x) {
     if (x > lista->tamanho) {
         printf("Erro: não há leituras suficientes para calcular a média.\n");
         return -1.0;
     }
 
-    Item *atual = lista->inicio; // Inicia do item apontado pelo ponteiro início
+    Item_distancia *atual = lista->inicio; // Inicia do item apontado pelo ponteiro início
     float soma = 0.0;
 
     // Soma as distâncias das x leituras mais antigas
@@ -174,13 +181,13 @@ float calcular_media_antigas(ListaEncadeada* lista, int x) {
     return soma / x;
 }
 
-float calcular_media_recentes(ListaEncadeada* lista, int x) {
+float calcular_media_recentes(ListaEncadeada_distancia* lista, int x) {
     if (x > lista->tamanho) {
         printf("Erro: não há leituras suficientes para calcular a média.\n");
         return -1.0;
     }
 
-    Item *atual = lista->fim; // Inicia do último item
+    Item_distancia *atual = lista->fim; // Inicia do último item
     float soma = 0.0;
 
     // Soma as distâncias das x leituras mais antigas
@@ -194,10 +201,51 @@ float calcular_media_recentes(ListaEncadeada* lista, int x) {
 
 /************ Fim - Lista das Distâncias de Obstáculo **************/
 
+/************ Início - Lista das Visitas do Veículo **************/
+
+// Estrutura de um nó da lista encadeada de visita
+typedef struct item_visita {
+    Visita dado;          // Valor da leitura de visita
+    struct item_visita *proximo;      // Ponteiros para o nó posterior e anterior
+} Item_visita;
+
+// Estrutura da lista encadeada de visita
+typedef struct {
+    Item_visita *inicio, *fim;                  // Ponteiros para o primeiro e último nó
+    int tamanho;              // Número de elementos na lista
+} ListaEncadeada_visita;
+
+// Função para criar uma lista encadeada de visita
+ListaEncadeada_visita* iniciar_lista_visita() {
+    ListaEncadeada_visita* lista = malloc(sizeof(ListaEncadeada_visita));
+    lista->inicio = NULL;
+    lista->fim = NULL;
+    lista->tamanho = 0;
+    return lista;
+}
+
+// Função para adicionar uma leitura à lista de visitas
+void adicionar_visita_lista(ListaEncadeada_visita* lista, Visita dado) {
+    Item_visita* novo = malloc(sizeof(Item_visita)); // Aloca um espaço na memória para um novo item da lista
+    novo->dado = dado; // Grava a visita no novo item
+    novo->proximo = NULL; // Seta o ponteiro do novo item para o próximo como NULL
+
+    // Adiciona o novo nó no final da lista
+    if (lista->fim == NULL) { // Lista vazia
+        lista->inicio = novo; // Ponteiro início aponta para o novo item
+    } else { // Caso a lista não for vazia
+        lista->fim->proximo = novo; // Ponteiro próximo do item anterior aponta o novo item
+    }
+    lista->fim = novo;
+    lista->tamanho++;
+}
+
+/************ Fim - Lista das Visitas do Veículo **************/
+
 /************ Início - Árvore das Visitas do Veículo **************/
 
 struct no_tree{ // Struct dos nós da árvore
-   Visita dado;
+   ListaEncadeada_visita *lista_dado;
    struct no_tree *left, *right; // filho da esquerda e da direita
    int altura; // Altura do nó para a folha mais baixa
 } typedef No_tree;
@@ -232,6 +280,10 @@ int comparar_visitas(Visita visita1, Visita visita2){
         return 1;
    }else if(visita1.coordenada.x < visita2.coordenada.x){
         return 2;
+   }else if(visita1.coordenada.y > visita2.coordenada.y){
+        return 1;
+   }else if(visita1.coordenada.y < visita2.coordenada.y){
+        return 2;
    }else{
         return 0;
    }
@@ -240,7 +292,8 @@ int comparar_visitas(Visita visita1, Visita visita2){
 No_tree *criarNo(Visita dado_novo){
     // Inicia um nó que guarda o dado passado como argumento da função
     No_tree *novo_no = malloc(sizeof(No_tree));
-    novo_no->dado = dado_novo;
+    novo_no->lista_dado = iniciar_lista_visita();
+    adicionar_visita_lista(novo_no->lista_dado, dado_novo);
     novo_no->left = NULL;
     novo_no->right = NULL;
     novo_no->altura = 1;
@@ -320,34 +373,20 @@ Tree *iniciar_arvore(){
    return tree;
 }
 
-void adicionar_visita(Tree *tree, Visita dado_novo){
-    No_tree *novo_no = criarNo(dado_novo); // Cria um novo nó
-    insert(tree->raiz, novo_no); // Insere o novo nó na árvore
-    tree->ultimo = novo_no; // Ponteiro último da árvore aponta para o novo nó
-    if(tree->raiz == NULL){ // Caso a árvore esteja vazia, o novo nó se torna a raiz da árvore
-        tree->raiz = tree->ultimo;
-    }
-    if(comparar_visitas(tree->ultimo->dado, tree->maximo->dado) != 2){
-        // Se ao comparar as coordenadas da última visita e da visita mais distante do ponto (0,0)
-        // a visita mais distante não tiver prioridade, o último nó se torna o nó máximo
-        tree->maximo = tree->ultimo;
-    }if(comparar_visitas(tree->minimo->dado, tree->ultimo->dado) != 2){
-        // Se ao comparar as coordenadas da última visita e da visita mais próxima do ponto (0,0)
-        // a última visita não tiver prioridade, o último nó se torna o nó mínimo
-        tree->minimo = tree->ultimo;
-    }
-}
-
-No_tree *insert(No_tree *no_atual, No_tree *novo_no){
+No_tree *insert(No_tree *no_atual, Visita novo_dado){
     // 1. Inserção de árvore binária padrão
     if (no_atual == NULL){
+        No_tree *novo_no = criarNo(novo_dado);
         return novo_no;
     }
 
-    if(comparar_visitas(no_atual->dado, novo_no->dado) == 1){
-        no_atual->left = insert(no_atual->left, novo_no);
+    if(comparar_visitas(no_atual->lista_dado->inicio->dado, novo_dado) == 1){
+        no_atual->left = insert(no_atual->left, novo_dado);
+    }else if(comparar_visitas(no_atual->lista_dado->inicio->dado, novo_dado) == 2){
+        no_atual->right = insert(no_atual->right, novo_dado);
     }else{
-        no_atual->right = insert(no_atual->right, novo_no);
+        adicionar_visita_lista(no_atual->lista_dado, novo_dado);
+        return no_atual;
     }
 
     // 2. Atualiza recursivamente as alturas dos nós
@@ -359,21 +398,21 @@ No_tree *insert(No_tree *no_atual, No_tree *novo_no){
     // 4. Se o nó está desbalanceado, há 4 casos desse desbalanço
 
     // Caso Left Left
-    if (balance > 1 && (comparar_visitas(no_atual->left->dado, novo_no->dado) == 1))
+    if (balance > 1 && (comparar_visitas(no_atual->left->lista_dado->inicio->dado, novo_dado) == 1))
         return rightRotate(no_atual);
 
     // Caso Right Right 
-    if (balance < -1 && (comparar_visitas(no_atual->right->dado, novo_no->dado) == 2))
+    if (balance < -1 && (comparar_visitas(no_atual->right->lista_dado->inicio->dado, novo_dado) == 2))
         return leftRotate(no_atual);
 
     // Caso Left Right
-    if (balance > 1 && (comparar_visitas(no_atual->left->dado, novo_no->dado) == 2)) {
+    if (balance > 1 && (comparar_visitas(no_atual->left->lista_dado->inicio->dado, novo_dado) == 2)) {
         no_atual->left = leftRotate(no_atual->left);
         return rightRotate(no_atual);
     }
 
     // Caso Right Left
-    if (balance < -1 && (comparar_visitas(no_atual->right->dado, novo_no->dado) == 1)) {
+    if (balance < -1 && (comparar_visitas(no_atual->right->lista_dado->inicio->dado, novo_dado) == 1)) {
         no_atual->right = rightRotate(no_atual->right);
         return leftRotate(no_atual);
     }
@@ -385,22 +424,43 @@ No_tree *insert(No_tree *no_atual, No_tree *novo_no){
 }
 
 No_tree *buscar_visita(No_tree *t, Visita value){
-   if(t==NULL || comparar_visitas(t->dado, value) == 0){
+   if(t==NULL || comparar_visitas(t->lista_dado->inicio->dado, value) == 0){
       // Caso o nó atual for NULL ou seu dado for igual ao procurado, então o nó atual é retornado
       return t;
    }else{
-      if(comparar_visitas(t->dado, value) == 1){
+      if(comparar_visitas(t->lista_dado->inicio->dado, value) == 1){
          // Caso o nó atual tenha preferência na comparação com o dado procurado, procurar no nó a esquerda
-         return search_value(t->left, value);
+         return buscar_visita(t->left, value);
       }
       else{
          // Caso o dado procurado tenha preferência na comparação com o nó atual, procurar no nó a direita
-         return search_value(t->right, value);
+         return buscar_visita(t->right, value);
       }
    }    
 }
 
+void adicionar_visita_arvore(Tree *tree, Visita dado_novo){
+    tree->raiz = insert(tree->raiz, dado_novo); // Insere o novo nó na árvore
+    tree->ultimo = buscar_visita(tree->raiz, dado_novo);
+    if(comparar_visitas(dado_novo, tree->maximo->lista_dado->inicio->dado) != 2){
+        // Se ao comparar as coordenadas da última visita e da visita mais distante do ponto (0,0)
+        // a visita mais distante não tiver prioridade, o último nó se torna o nó máximo
+        tree->maximo = tree->ultimo;
+    }if(comparar_visitas(tree->minimo->lista_dado->inicio->dado, tree->ultimo->lista_dado->inicio->dado) != 2){
+        // Se ao comparar as coordenadas da última visita e da visita mais próxima do ponto (0,0)
+        // a última visita não tiver prioridade, o último nó se torna o nó mínimo
+        tree->minimo = tree->ultimo;
+    }
+}
+
 /************ Fim - Árvore das Visitas do Veículo **************/
+
+/************ Início - Criação das Estruturas **************/
+
+ListaEncadeada_distancia *lista_de_distancias = NULL;
+Tree *arvore_de_visitas = NULL;
+
+/************ Fim - Criação das Estruturas **************/
 
 //**** 	 ****/
 
@@ -409,6 +469,9 @@ int main() {
     pthread_t thread_gerar, thread_ler;
     Visita visita; 
     int opcao=0;
+
+    lista_de_distancias = iniciar_lista_distancia();
+    arvore_de_visitas = iniciar_arvore();
 
     // CriaÃ§Ã£o da thread que simula geraÃ§Ã£o de valores de sensores
     if (pthread_create(&thread_gerar, NULL, gerar_valores_de_sensores, NULL) != 0) {
@@ -424,18 +487,18 @@ int main() {
 
     // FunÃ§Ã£o principal aguarda a tecla ENTER para imprimir o contador
     while (opcao!=9) {
-        printf("Selecione uma das opÃ§Ãµes abaixo: \n");
-        printf("1. Imprimir distÃ¢ncia para o obstÃ¡culo mais prÃ³ximo\n");
-        printf("2. Imprimir os dados do Ãºltimo ponto visitado\n");
-        printf("3. Imprimir a distÃ¢ncia mÃ©dia para o obstÃ¡culo mais prÃ³ximo nas primeiras 'x' leituras\n");
-        printf("4. Imprimir a distÃ¢ncia mÃ©dia para o obstÃ¡culo mais prÃ³ximo nas Ãºltimas 'x' leituras\n");
-        printf("5. Imprimir o horÃ¡rio da primeira visita a um ponto.\n");
-        printf("6. Imprimir o a distÃ¢ncia entre o Ãºltimo ponto ponto visitado e o ponto mais distante das coordenadas (0, 0)\n");
-        printf("7. Imprimir o a distÃ¢ncia entre o Ãºltimo ponto ponto visitado e o ponto mais prÃ³ximo das coordenadas (0, 0)\n");
+        printf("Selecione uma das opções abaixo: \n");
+        printf("1. Imprimir distância para o obstáculo mais próximo\n");
+        printf("2. Imprimir os dados do último ponto visitado\n");
+        printf("3. Imprimir a distância média para o obstáculo mais próximo nas primeiras 'x' leituras\n");
+        printf("4. Imprimir a distância média para o obstáculo mais próximo nas últimas 'x' leituras\n");
+        printf("5. Imprimir o horário da primeira visita a um ponto.\n");
+        printf("6. Imprimir o a distância entre o último ponto ponto visitado e o ponto mais distante das coordenadas (0, 0)\n");
+        printf("7. Imprimir o a distância entre o último ponto ponto visitado e o ponto mais próximo das coordenadas (0, 0)\n");
         printf("9. Encerrar o programa\n");
 
 
-        printf("\nDigite uma opÃ§Ã£o: ");
+        printf("\nDigite uma opção: ");
         scanf("%d",&opcao);
         switch(opcao){
            case 1: 
@@ -446,7 +509,44 @@ int main() {
               printf("(%d,%d) - %02d:%02d:%02d\n",visita.coordenada.x, visita.coordenada.y, visita.hora->tm_hour, visita.hora->tm_min, visita.hora->tm_sec);
               break;
            /**** Implementar as opÃ§Ãµes 3 a 7 aqui ****/   
-
+           case 3: 
+              printf("x: ");
+              int x;
+              scanf("%d", &x);
+              printf("Distância média para o obstáculo mais próximo nas primeiras %d leituras: %f\n", x, calcular_media_antigas(lista_de_distancias, x));
+              break;
+           case 4: 
+              printf("x: ");
+              int input;
+              scanf("%d", &input);
+              printf("Distância média para o obstáculo mais próximo nas últimas %d leituras: %f\n", input, calcular_media_recentes(lista_de_distancias, input));
+              break;
+           case 5: 
+              int coordx, coordy;
+              printf("Coordenada x do ponto: ");
+              scanf("%d", &coordx);
+              printf("Coordenada y do ponto: ");
+              scanf("%d", &coordy);
+              Visita ponto;
+              ponto.coordenada.x = coordx;
+              ponto.coordenada.y = coordy;
+              Visita primeira_visita = buscar_visita(arvore_de_visitas->raiz, ponto)->lista_dado->inicio->dado;
+              printf("Horário que o ponto foi visitado pela primeira vez: %02d:%02d:%02d\n", visita.hora->tm_hour, visita.hora->tm_min, visita.hora->tm_sec);
+              break;
+           case 6: 
+              Visita ultimo_ponto = arvore_de_visitas->ultimo->lista_dado->fim->dado;
+              Visita ponto_mais_distante = arvore_de_visitas->maximo->lista_dado->fim->dado;
+              printf("Coordenadas do último ponto lido: (%d,%d)\n", ultimo_ponto.coordenada.x, ultimo_ponto.coordenada.y);
+              printf("Coordenadas do ponto visitado mais distante das coordenadas (0, 0): (%d,%d)\n", ponto_mais_distante.coordenada.x, ponto_mais_distante.coordenada.y);
+              printf("Distância entre esses dois pontos: %f\n", dist_coords(ultimo_ponto.coordenada.x, ultimo_ponto.coordenada.y, ponto_mais_distante.coordenada.x, ponto_mais_distante.coordenada.y));
+              break;
+           case 7: 
+              Visita ultimo_pont = arvore_de_visitas->ultimo->lista_dado->fim->dado;
+              Visita ponto_mais_proximo = arvore_de_visitas->minimo->lista_dado->fim->dado;
+              printf("Coordenadas do último ponto lido: (%d,%d)\n", ultimo_pont.coordenada.x, ultimo_pont.coordenada.y);
+              printf("Coordenadas do ponto visitado mais distante das coordenadas (0, 0): (%d,%d)\n", ponto_mais_proximo.coordenada.x, ponto_mais_proximo.coordenada.y);
+              printf("Distância entre esses dois pontos: %f\n", dist_coords(ultimo_pont.coordenada.x, ultimo_pont.coordenada.y, ponto_mais_proximo.coordenada.x, ponto_mais_proximo.coordenada.y));
+              break;
            /**** Fim da implementaÃ§Ã£o das opÃ§Ãµes 3 a 7  ****/
            case 9: 
               pthread_mutex_lock(&mutex);
@@ -455,13 +555,8 @@ int main() {
               pthread_mutex_unlock(&mutex);
               break;     
            default:
-              printf("OpÃ§Ã£o invÃ¡lida\n");
+              printf("OpÃ§Ã£o inválida\n");
         }
-
-
-
-
-
     }
 
     // Espera as threads finaizarem
