@@ -78,46 +78,7 @@ void* gerar_valores_de_sensores(void* arg) {
 
 
 // FunÃ§Ã£o que simula a leitura de valores de sensores
-void* ler_valores_de_sensores(void* arg) {
-    Visita visita;     
-    while (thread_status == 1) {
-        // Espera atÃ© receber o sinal da thread de geraÃ§Ã£o de valores
-        pthread_mutex_lock(&mutex);
 
-        // Verifica se o programa ainda deve continuar antes de esperar pelo sinal
-        if (thread_status == 0) {
-            pthread_mutex_unlock(&mutex);
-            break;
-        }
-
-        pthread_cond_wait(&cond, &mutex);
-
-        if (thread_status == 0) {
-            pthread_mutex_unlock(&mutex);
-            break;
-        }
-
-        //*** As trÃªs linhas abaixo ilustram a leitura de sensores. Descomentar para testar 
-        //printf("DistÃ¢ncia para o obstÃ¡culo mais prÃ³ximo: %f\n", distancia_obstaculo());
-        //Visita visita = ultima_visita();
-        //printf("(%d,%d) - %02d:%02d:%02d\n",visita.coordenada.x, visita.coordenada.y, visita.hora->tm_hour, visita.hora->tm_min, visita.hora->tm_sec);
-
-        /**** Implementar a leitura dos sensores aqui ****/
-
-        /*if(lista_de_distancias == NULL){
-            lista_de_distancias = iniciar_lista_distancia();
-        }if(arvore_de_visitas == NULL){
-            arvore_de_visitas = iniciar_arvore();
-        }*/
-        //adicionar_distancia(lista_de_distancias, distancia_obstaculo());
-        //adicionar_visita_arvore(arvore_de_visitas, ultima_visita());
-
-        /**** Finalizar a leitura dos sensores aqui  ****/
-
-        pthread_mutex_unlock(&mutex);
-    }
-    return NULL;
-}
 
 
 //**** Implementar todas as funÃ§Ãµes e estruturas de dados aqui ****/
@@ -440,16 +401,26 @@ No_tree *buscar_visita(No_tree *t, Visita value){
 }
 
 void adicionar_visita_arvore(Tree *tree, Visita dado_novo){
+    //printf("\n\nfuncao adicionar_visita_arvore chamada\n\n");
     tree->raiz = insert(tree->raiz, dado_novo); // Insere o novo nó na árvore
+    //printf("\n\nno inserido\n\n");
     tree->ultimo = buscar_visita(tree->raiz, dado_novo);
-    if(comparar_visitas(dado_novo, tree->maximo->lista_dado->inicio->dado) != 2){
-        // Se ao comparar as coordenadas da última visita e da visita mais distante do ponto (0,0)
-        // a visita mais distante não tiver prioridade, o último nó se torna o nó máximo
+    if(tree->maximo == NULL){
         tree->maximo = tree->ultimo;
-    }if(comparar_visitas(tree->minimo->lista_dado->inicio->dado, tree->ultimo->lista_dado->inicio->dado) != 2){
-        // Se ao comparar as coordenadas da última visita e da visita mais próxima do ponto (0,0)
-        // a última visita não tiver prioridade, o último nó se torna o nó mínimo
+    }else{
+        if(comparar_visitas(dado_novo, tree->maximo->lista_dado->inicio->dado) == 1){
+            // Se ao comparar as coordenadas da última visita e da visita mais distante do ponto (0,0)
+            // a visita mais distante não tiver prioridade, o último nó se torna o nó máximo
+            tree->maximo = tree->ultimo;
+        }
+    }if(tree->minimo == NULL){
         tree->minimo = tree->ultimo;
+    }else{
+        if(comparar_visitas(tree->minimo->lista_dado->inicio->dado, tree->ultimo->lista_dado->inicio->dado) == 1){
+            // Se ao comparar as coordenadas da última visita e da visita mais próxima do ponto (0,0)
+            // a última visita não tiver prioridade, o último nó se torna o nó mínimo
+            tree->minimo = tree->ultimo;
+        }
     }
 }
 
@@ -464,6 +435,46 @@ Tree *arvore_de_visitas = NULL;
 
 //**** 	 ****/
 
+void* ler_valores_de_sensores(void* arg) {
+    Visita visita;     
+    while (thread_status == 1) {
+        // Espera atÃ© receber o sinal da thread de geraÃ§Ã£o de valores
+        pthread_mutex_lock(&mutex);
+
+        // Verifica se o programa ainda deve continuar antes de esperar pelo sinal
+        if (thread_status == 0) {
+            pthread_mutex_unlock(&mutex);
+            break;
+        }
+
+        pthread_cond_wait(&cond, &mutex);
+
+        if (thread_status == 0) {
+            pthread_mutex_unlock(&mutex);
+            break;
+        }
+
+        //*** As trÃªs linhas abaixo ilustram a leitura de sensores. Descomentar para testar 
+        //printf("DistÃ¢ncia para o obstÃ¡culo mais prÃ³ximo: %f\n", distancia_obstaculo());
+        //Visita visita = ultima_visita();
+        //printf("(%d,%d) - %02d:%02d:%02d\n",visita.coordenada.x, visita.coordenada.y, visita.hora->tm_hour, visita.hora->tm_min, visita.hora->tm_sec);
+
+        /**** Implementar a leitura dos sensores aqui ****/
+
+        if(lista_de_distancias == NULL){
+            lista_de_distancias = iniciar_lista_distancia();
+        }if(arvore_de_visitas == NULL){
+           arvore_de_visitas = iniciar_arvore();
+        }
+        adicionar_distancia(lista_de_distancias, distancia_obstaculo());
+        adicionar_visita_arvore(arvore_de_visitas, ultima_visita());
+
+        /**** Finalizar a leitura dos sensores aqui  ****/
+
+        pthread_mutex_unlock(&mutex);
+    }
+    return NULL;
+}
 
 int main() {
     pthread_t thread_gerar, thread_ler;
@@ -487,18 +498,18 @@ int main() {
 
     // FunÃ§Ã£o principal aguarda a tecla ENTER para imprimir o contador
     while (opcao!=9) {
-        printf("Selecione uma das opções abaixo: \n");
-        printf("1. Imprimir distância para o obstáculo mais próximo\n");
-        printf("2. Imprimir os dados do último ponto visitado\n");
-        printf("3. Imprimir a distância média para o obstáculo mais próximo nas primeiras 'x' leituras\n");
-        printf("4. Imprimir a distância média para o obstáculo mais próximo nas últimas 'x' leituras\n");
-        printf("5. Imprimir o horário da primeira visita a um ponto.\n");
-        printf("6. Imprimir o a distância entre o último ponto ponto visitado e o ponto mais distante das coordenadas (0, 0)\n");
-        printf("7. Imprimir o a distância entre o último ponto ponto visitado e o ponto mais próximo das coordenadas (0, 0)\n");
+        printf("Selecione uma das opcoes abaixo: \n");
+        printf("1. Imprimir distancia para o obstaculo mais proximo\n");
+        printf("2. Imprimir os dados do ultimo ponto visitado\n");
+        printf("3. Imprimir a distancia media para o obstaculo mais proximo nas primeiras 'x' leituras\n");
+        printf("4. Imprimir a distancia media para o obstaculo mais proximo nas ultimas 'x' leituras\n");
+        printf("5. Imprimir o horario da primeira visita a um ponto.\n");
+        printf("6. Imprimir o a distancia entre o ultimo ponto ponto visitado e o ponto mais distante das coordenadas (0, 0)\n");
+        printf("7. Imprimir o a distancia entre o ultimo ponto ponto visitado e o ponto mais proximo das coordenadas (0, 0)\n");
         printf("9. Encerrar o programa\n");
 
 
-        printf("\nDigite uma opção: ");
+        printf("\nDigite uma opcao: ");
         scanf("%d",&opcao);
         switch(opcao){
            case 1: 
@@ -513,13 +524,13 @@ int main() {
               printf("x: ");
               int x;
               scanf("%d", &x);
-              printf("Distância média para o obstáculo mais próximo nas primeiras %d leituras: %f\n", x, calcular_media_antigas(lista_de_distancias, x));
+              printf("Distancia media para o obstaculo mais proximo nas primeiras %d leituras: %f\n\n", x, calcular_media_antigas(lista_de_distancias, x));
               break;
            case 4: 
               printf("x: ");
               int input;
               scanf("%d", &input);
-              printf("Distância média para o obstáculo mais próximo nas últimas %d leituras: %f\n", input, calcular_media_recentes(lista_de_distancias, input));
+              printf("Distancia media para o obstaculo mais proximo nas ultimas %d leituras: %f\n\n", input, calcular_media_recentes(lista_de_distancias, input));
               break;
            case 5: 
               int coordx, coordy;
@@ -530,22 +541,27 @@ int main() {
               Visita ponto;
               ponto.coordenada.x = coordx;
               ponto.coordenada.y = coordy;
-              Visita primeira_visita = buscar_visita(arvore_de_visitas->raiz, ponto)->lista_dado->inicio->dado;
-              printf("Horário que o ponto foi visitado pela primeira vez: %02d:%02d:%02d\n", visita.hora->tm_hour, visita.hora->tm_min, visita.hora->tm_sec);
+              No_tree *no_ponto = buscar_visita(arvore_de_visitas->raiz, ponto);
+              if(no_ponto == NULL){
+                printf("Ponto ainda nao visitado\n\n");
+              }else{
+                Visita primeira_visita = no_ponto->lista_dado->inicio->dado;
+                printf("Horario que o ponto foi visitado pela primeira vez: %02d:%02d:%02d\n\n", primeira_visita.hora->tm_hour, primeira_visita.hora->tm_min, primeira_visita.hora->tm_sec);
+              }
               break;
            case 6: 
               Visita ultimo_ponto = arvore_de_visitas->ultimo->lista_dado->fim->dado;
               Visita ponto_mais_distante = arvore_de_visitas->maximo->lista_dado->fim->dado;
-              printf("Coordenadas do último ponto lido: (%d,%d)\n", ultimo_ponto.coordenada.x, ultimo_ponto.coordenada.y);
+              printf("Coordenadas do ultimo ponto lido: (%d,%d)\n", ultimo_ponto.coordenada.x, ultimo_ponto.coordenada.y);
               printf("Coordenadas do ponto visitado mais distante das coordenadas (0, 0): (%d,%d)\n", ponto_mais_distante.coordenada.x, ponto_mais_distante.coordenada.y);
-              printf("Distância entre esses dois pontos: %f\n", dist_coords(ultimo_ponto.coordenada.x, ultimo_ponto.coordenada.y, ponto_mais_distante.coordenada.x, ponto_mais_distante.coordenada.y));
+              printf("Distancia entre esses dois pontos: %f\n\n", dist_coords(ultimo_ponto.coordenada.x, ultimo_ponto.coordenada.y, ponto_mais_distante.coordenada.x, ponto_mais_distante.coordenada.y));
               break;
            case 7: 
               Visita ultimo_pont = arvore_de_visitas->ultimo->lista_dado->fim->dado;
               Visita ponto_mais_proximo = arvore_de_visitas->minimo->lista_dado->fim->dado;
-              printf("Coordenadas do último ponto lido: (%d,%d)\n", ultimo_pont.coordenada.x, ultimo_pont.coordenada.y);
-              printf("Coordenadas do ponto visitado mais distante das coordenadas (0, 0): (%d,%d)\n", ponto_mais_proximo.coordenada.x, ponto_mais_proximo.coordenada.y);
-              printf("Distância entre esses dois pontos: %f\n", dist_coords(ultimo_pont.coordenada.x, ultimo_pont.coordenada.y, ponto_mais_proximo.coordenada.x, ponto_mais_proximo.coordenada.y));
+              printf("Coordenadas do ultimo ponto lido: (%d,%d)\n", ultimo_pont.coordenada.x, ultimo_pont.coordenada.y);
+              printf("Coordenadas do ponto visitado mais proximo das coordenadas (0, 0): (%d,%d)\n", ponto_mais_proximo.coordenada.x, ponto_mais_proximo.coordenada.y);
+              printf("Distancia entre esses dois pontos: %f\n\n", dist_coords(ultimo_pont.coordenada.x, ultimo_pont.coordenada.y, ponto_mais_proximo.coordenada.x, ponto_mais_proximo.coordenada.y));
               break;
            /**** Fim da implementaÃ§Ã£o das opÃ§Ãµes 3 a 7  ****/
            case 9: 
@@ -555,7 +571,7 @@ int main() {
               pthread_mutex_unlock(&mutex);
               break;     
            default:
-              printf("OpÃ§Ã£o inválida\n");
+              printf("Opcao inválida\n");
         }
     }
 
