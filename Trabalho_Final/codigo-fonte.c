@@ -126,7 +126,7 @@ void adicionar_distancia(ListaEncadeada_distancia* lista, float distancia) {
 // Função para calcular a média das x leituras mais antigas
 float calcular_media_antigas(ListaEncadeada_distancia* lista, int x) {
     if (x > lista->tamanho) {
-        printf("Erro: não há leituras suficientes para calcular a média.\n");
+        printf("Erro: nao ha leituras suficientes para calcular a media.\n\n");
         return -1.0;
     }
 
@@ -144,7 +144,7 @@ float calcular_media_antigas(ListaEncadeada_distancia* lista, int x) {
 
 float calcular_media_recentes(ListaEncadeada_distancia* lista, int x) {
     if (x > lista->tamanho) {
-        printf("Erro: não há leituras suficientes para calcular a média.\n");
+        printf("Erro: nao ha leituras suficientes para calcular a media.\n\n");
         return -1.0;
     }
 
@@ -524,13 +524,19 @@ int main() {
               printf("x: ");
               int x;
               scanf("%d", &x);
-              printf("Distancia media para o obstaculo mais proximo nas primeiras %d leituras: %f\n\n", x, calcular_media_antigas(lista_de_distancias, x));
+              float media_antiga = calcular_media_antigas(lista_de_distancias, x);
+              if(media_antiga != -1){
+                printf("Distancia media para o obstaculo mais proximo nas primeiras %d leituras: %f\n\n", x, media_antiga);
+              }
               break;
            case 4: 
               printf("x: ");
               int input;
               scanf("%d", &input);
-              printf("Distancia media para o obstaculo mais proximo nas ultimas %d leituras: %f\n\n", input, calcular_media_recentes(lista_de_distancias, input));
+              float media_recente = calcular_media_recentes(lista_de_distancias, input);
+              if(media_recente != -1){
+                printf("Distancia media para o obstaculo mais proximo nas ultimas %d leituras: %f\n\n", input, media_recente);
+              }
               break;
            case 5: 
               int coordx, coordy;
